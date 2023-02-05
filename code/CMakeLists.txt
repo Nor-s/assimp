@@ -1,6 +1,5 @@
 # Open Asset Import Library (assimp)
 # ----------------------------------------------------------------------
-#
 # Copyright (c) 2006-2022, assimp team
 #
 # All rights reserved.
@@ -94,6 +93,7 @@ SET( PUBLIC_HEADERS
   ${HEADER_PATH}/vector3.inl
   ${HEADER_PATH}/version.h
   ${HEADER_PATH}/cimport.h
+  ${HEADER_PATH}/AssertHandler.h
   ${HEADER_PATH}/importerdesc.h
   ${HEADER_PATH}/Importer.hpp
   ${HEADER_PATH}/DefaultLogger.hpp
@@ -270,8 +270,8 @@ if (NOT ASSIMP_NO_EXPORT)
   # ASSIMP_BUILD_XXX_EXPORTER to TRUE for each exporter
   OPTION(ASSIMP_BUILD_ALL_EXPORTERS_BY_DEFAULT "default value of all ASSIMP_BUILD_XXX_EXPORTER values" TRUE)
 
-  # macro to add the CMake Option ADD_ASSIMP_IMPORTER_<name> which enables compile of loader
-  # this way selective loaders can be compiled (reduces filesize + compile time)
+  # macro to add the CMake Option ADD_ASSIMP_EXPORTER_<name> which enables compilation of an exporter
+  # this way selective exporters can be compiled (reduces filesize + compile time)
   MACRO(ADD_ASSIMP_EXPORTER name)
     IF (ASSIMP_NO_EXPORT)
       set(ASSIMP_EXPORTER_ENABLED FALSE)
@@ -1100,8 +1100,6 @@ if(MSVC10)
   endif()
 endif()
 
-ADD_DEFINITIONS( -DASSIMP_BUILD_DLL_EXPORT )
-
 IF( MSVC OR "${CMAKE_CXX_SIMULATE_ID}" MATCHES "MSVC") # clang with MSVC ABI
   ADD_DEFINITIONS( -D_SCL_SECURE_NO_WARNINGS )
   ADD_DEFINITIONS( -D_CRT_SECURE_NO_WARNINGS )
@@ -1177,6 +1175,13 @@ ENDIF()
 
 ADD_LIBRARY( assimp ${assimp_src} )
 ADD_LIBRARY(assimp::assimp ALIAS assimp)
+
+# Add or remove dllexport tags depending on the library type.
+IF (BUILD_SHARED_LIBS)
+  TARGET_COMPILE_DEFINITIONS(assimp PRIVATE ASSIMP_BUILD_DLL_EXPORT)
+ELSE ()
+  TARGET_COMPILE_DEFINITIONS(assimp PRIVATE OPENDDL_STATIC_LIBARY)
+ENDIF ()
 
 TARGET_USE_COMMON_OUTPUT_DIRECTORY(assimp)
 
